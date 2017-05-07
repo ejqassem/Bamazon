@@ -1,5 +1,6 @@
 var mysql = require('mysql');
 var inquirer = require('inquirer');
+// var columnify = require('columnify');
 
 var connection = mysql.createConnection({
   host     : 'localhost',
@@ -37,7 +38,7 @@ var start = function() {
           for (var i in products) {
             displayProducts.push(products[i].item_id + " || " + products[i].product_name + " || " + products[i].price);
           }
-          return displayProducts;
+          return displayProducts; 
         },
         message: 'Please input product id of what item you\'d like to buy',
         name: 'productChoice'
