@@ -1,7 +1,6 @@
 var inquirer = require('inquirer');
 var mysql = require('mysql');
 
-
 var connection = mysql.createConnection({
   host     : 'localhost',
   port: 3306,
@@ -38,7 +37,7 @@ var viewProducts = function() {
     inquirer.prompt([
       {
         type: 'list',
-        message: 'All available inventory \n Press enter on any item to return to main screen',
+        message: 'All available inventory \n Press enter on any item to return to main screen \n ID ||  Product || Price($) || Current Stock \n -----------------------------------------',
         choices: function(){
           var allInventory = [];
           for(var i in products) {
@@ -94,7 +93,7 @@ var addToInventory = function() {
         inquirer.prompt([
           {
             type: 'list',
-            message: 'All available inventory \n Press enter on any item to update inventory',
+            message: 'All available inventory \n Press enter on any item to update inventory \n ID ||  Product || Price($) || Current Stock \n ----------------------------------------------',
             choices: function(){
               var allInventory = [];
               for(var i in products) {
@@ -107,7 +106,14 @@ var addToInventory = function() {
           {
             type: 'input',
             message: 'How much would you like to add to stock inventory',
-            name: 'updateInventory'
+            name: 'updateInventory',
+            validate: function(value) {
+              if(value) {
+                return true;
+              }
+              console.log('\nPlease input a number');
+              return false;
+            }
           }
         ]).then(function(data) {
           var arr = data.allInventory.split('||');
