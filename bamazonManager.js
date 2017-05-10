@@ -1,5 +1,7 @@
 var inquirer = require('inquirer');
 var mysql = require('mysql');
+var chalk = require('chalk');
+var Table = require('easy-table');
 
 var connection = mysql.createConnection({
   host     : 'localhost',
@@ -23,7 +25,6 @@ connection.connect(function(err) {
 
 var viewProducts = function() {
   connection.query('SELECT * FROM products', function(err, res) {
-    console.log(res);
     var products = [];
     for(var i = 0; i < res.length; i++) {
       var obj = {
@@ -37,7 +38,10 @@ var viewProducts = function() {
     inquirer.prompt([
       {
         type: 'list',
-        message: 'All available inventory \n Press enter on any item to return to main screen \n ID ||  Product || Price($) || Current Stock \n -----------------------------------------',
+        message: function() {
+          var redText = chalk.red('Press enter on any item to return to the main screen');
+          return 'All available inventory \n' + redText + '\n ID ||  Product || Price($) || Current Stock \n -----------------------------------------';
+        },
         choices: function(){
           var allInventory = [];
           for(var i in products) {
@@ -56,8 +60,9 @@ var viewProducts = function() {
 
 var viewLowInventory = function() {
   connection.query('SELECT product_name FROM products WHERE stock_quantity < 5', function(err, res) {
+    var redText = chalk.red(' less than 5');
     console.log('========================');
-    console.log('The following have a quantity less than 5:');
+    console.log('The following have a quantity' + redText);
     var count = 1;
     for(var i in res) {
       console.log(count + ") " + res[i].product_name);
@@ -79,7 +84,6 @@ var addToInventory = function() {
   ]).then(function(data) {
     if(data.confirm) {
       connection.query('SELECT * FROM products', function(err, res) {
-        console.log(res);
         var products = [];
         for(var i = 0; i < res.length; i++) {
           var obj = {
@@ -93,7 +97,9 @@ var addToInventory = function() {
         inquirer.prompt([
           {
             type: 'list',
-            message: 'All available inventory \n Press enter on any item to update inventory \n ID ||  Product || Price($) || Current Stock \n ----------------------------------------------',
+            message:
+
+            'All available inventory \n Press enter on any item to update inventory \n ID ||  Product || Price($) || Current Stock \n ----------------------------------------------',
             choices: function(){
               var allInventory = [];
               for(var i in products) {
@@ -152,6 +158,11 @@ var addNewProducts = function() {
     },
     {
       type: 'input',
+      message: "What department will sell this item",
+      name: 'itemDepartment'
+    },
+    {
+      type: 'input',
       message: 'What is the cost of this item?',
       name: 'itemCost'
     },
@@ -162,13 +173,37 @@ var addNewProducts = function() {
     }
   ]).then(function(data) {
     var itemName = data.itemName;
+    var itemDepartment = data.itemDepartment;
     var itemCost = data.itemCost;
     var itemQuantity = data.itemQuantity;
-    connection.query('INSERT INTO products SET ?', {product_name:itemName, price:itemCost, stock_quantity:itemQuantity}, function(err, res) {
+    connection.query('INSERT INTO products SET ?', {product_name:itemName, department_name: itemDepartment, price:itemCost, stock_quantity:itemQuantity}, function(err, res) {
       if(err) throw err;
       connection.query('SELECT * FROM products', function(err, res) {
         if(err) throw err;
-        console.log(res);
+        var products = [];
+        for(var i = 0; i < res.length; i++) {
+          var obj = {
+            item_id: res[i].item_id,
+            product_name: res[i].product_name,
+            price: res[i].price
+          };
+          products.push(obj);
+        }
+        var t = new Table();
+        products.forEach(function(product) {
+          t.cell('Item(#)', product.item_id);
+          t.cell('Product', product.product_name);
+          t.cell('Price($)', product.price, Table.number(2));
+          t.newRow();
+        });
+        console.log(t.toString());
+        // console.log("------------------------------------");
+        // console.log(chalk.bold("Item(#)||   Product     ||  Price($)"));
+        // console.log("------------------------------------");
+        // for(var i in products) {
+        //   console.log(products[i].item_id + "    ||    " + products[i].product_name + "    ||    " + products[i].price);
+        // }
+        start();
       });
     });
   });
