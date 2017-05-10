@@ -2,6 +2,7 @@ var mysql = require('mysql');
 var inquirer = require('inquirer');
 var columnify = require('columnify');
 
+
 var connection = mysql.createConnection({
   host     : 'localhost',
   port: 3306,
@@ -9,6 +10,7 @@ var connection = mysql.createConnection({
   password : '',
   database: 'bamazon'
 });
+
 
 connection.connect(function(err) {
   if (err) {
@@ -19,6 +21,7 @@ connection.connect(function(err) {
   console.log('connected as id ' + connection.threadId);
   start();
 });
+
 
 function updateTotalSales(name, cost) {
   connection.query('SELECT total_sales FROM department WHERE ? ', {
@@ -78,7 +81,6 @@ var start = function() {
         name: 'purchaseAmount'
       }
     ]).then(function(data) {
-
       console.log(data.productChoice);
       var arr = data.productChoice.split("||");
       var chosenId = arr[0];
